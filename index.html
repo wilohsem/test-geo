@@ -25,7 +25,7 @@ input[type=range]{width:100%}.btn{border:0;border-radius:8px;padding:10px 12px;b
 @media(max-width:800px){main{display:flex;flex-direction:column}aside{order:2;border-right:0}#map{order:1;height:58vh;min-height:380px}}
 </style></head>
 <body>
-<header><div><div class="brand">DISTINTEC GEO</div><div class="sub">PROSPECCIÓN COMERCIAL NACIONAL</div></div><div class="small" style="color:#dce8f2">MVP · Versión 5.2 · Clasificación comercial</div></header>
+<header><div><div class="brand">DISTINTEC GEO</div><div class="sub">PROSPECCIÓN COMERCIAL NACIONAL</div></div><div class="small" style="color:#dce8f2">MVP · Versión 5.3 · Tres categorías comerciales</div></header>
 <main>
 <aside>
 <section class="group"><h2>Configuración del mapa</h2>
@@ -37,13 +37,13 @@ input[type=range]{width:100%}.btn{border:0;border-radius:8px;padding:10px 12px;b
 <label for="radius">Radio de búsqueda: <strong id="radiusText">5 km</strong></label>
 <input id="radius" type="range" min="1" max="50" value="5" step="1">
 <label for="category">Tipo de establecimiento</label>
-<select id="category"><option value="">Todas las categorías</option><option>Comercio</option><option>Oficinas y servicios</option><option>Industria y talleres</option><option>Alimentos y servicios</option><option>Salud</option><option>Turismo y hospedaje</option><option>Otros establecimientos</option><option>Ferretería</option><option>Distribuidor industrial</option><option>Barraca / maderera</option><option>Materiales de construcción</option><option>Seguridad industrial</option><option>Suministros mineros</option><option>Maquinaria y equipos</option></select>
+<select id="category"><option>Ferretería</option><option>Distribuidores industriales</option><option>Materiales de construcción</option></select>
 <label for="status">Estado comercial</label>
 <select id="status"><option value="">Todos los estados</option><option>Prospecto</option><option>Asignado</option><option>Visitado</option><option>Cliente</option><option>Descartado</option></select>
 <div class="actions"><button class="btn" id="locate">Usar mi ubicación</button><button class="btn secondary" id="reset">Ver Chile</button></div>
 </section>
 <section class="group"><h2>Prospección automática</h2>
-<p class="small">Busca establecimientos registrados en OpenStreetMap dentro del radio desde tu ubicación GPS. Si un servidor está ocupado, prueba automáticamente otros servicios. Clasifica ferreterías, distribuidores, barracas, materiales de construcción, seguridad, maquinaria y otros rubros según las etiquetas disponibles en OpenStreetMap.</p>
+<p class="small">Busca establecimientos registrados en OpenStreetMap dentro del radio desde tu ubicación GPS. Si un servidor está ocupado, prueba automáticamente otros servicios. Permite segmentar exclusivamente en Ferretería, Distribuidores industriales y Materiales de construcción.</p>
 <div class="actions"><button class="btn" id="searchNearby">Buscar prospectos cercanos</button></div>
 <div id="searchStatus" class="small" role="status" aria-live="polite">Primero usa «Usar mi ubicación». Después se consultarán los establecimientos mapeados en el radio elegido.</div>
 </section>
@@ -54,7 +54,7 @@ input[type=range]{width:100%}.btn{border:0;border-radius:8px;padding:10px 12px;b
 </section>
 <section class="group"><h2>Registrar establecimiento</h2>
 <label for="newName">Nombre comercial *</label><input id="newName" type="text" placeholder="Ej. Ferretería Los Andes">
-<label for="newCategory">Categoría *</label><select id="newCategory"><option>Ferretería</option><option>Distribuidor industrial</option><option>Barraca / maderera</option><option>Materiales de construcción</option><option>Seguridad industrial</option><option>Suministros mineros</option><option>Maquinaria y equipos</option></select>
+<label for="newCategory">Categoría *</label><select id="newCategory"><option>Ferretería</option><option>Distribuidores industriales</option><option>Materiales de construcción</option></select>
 <label for="newAddress">Dirección</label><input id="newAddress" type="text" placeholder="Calle y número">
 <label for="newCommune">Comuna</label><input id="newCommune" type="text" placeholder="Comuna">
 <label for="newRegion">Región</label><input id="newRegion" type="text" placeholder="Región">
@@ -90,7 +90,7 @@ $('applyMapKey').onclick=()=>connectCarto($('cartoKey').value.trim());
 let records=[],markers=[],userMarker=null,circle=null,userPos=null,newCoords=null;
 let osmRecords=[];
 // La prospección automática comienza sin filtros para no ocultar categorías de OSM.
-$('category').value='';
+$('category').value='Ferretería';
 $('status').value='';
 const radius=()=>Number($('radius').value)*1000;
 
@@ -98,22 +98,14 @@ function osmCategory(t){
  const shop=String(t.shop||'').toLowerCase();
  const industrial=String(t.industrial||'').toLowerCase();
  const name=String(t.name||t.brand||t.operator||'').toLowerCase();
- // Clasificación específica basada en etiquetas OSM y, como apoyo, nombres explícitos.
+ // Solo se exponen las tres categorías comerciales definidas para Distintec.
  if(/ferreter[ií]a|hardware|herramientas/.test(name)) return 'Ferretería';
- if(/barraca|maderera|maderas|aserradero/.test(name) || /^(timber|sawmill)$/.test(shop) || industrial==='sawmill') return 'Barraca / maderera';
- if(/seguridad industrial|epp|elementos de protecci[oó]n personal/.test(name) || /^(safety_equipment|workwear)$/.test(shop)) return 'Seguridad industrial';
- if(/suministros mineros|mining supplies|minero/.test(name)) return 'Suministros mineros';
- if(/maquinaria|maquinas|equipos industriales/.test(name) || /^(machinery|construction_equipment|agricultural_machinery)$/.test(shop)) return 'Maquinaria y equipos';
  if(/^(hardware|doityourself|tools|paint|electrical|plumbing|locksmith)$/.test(shop)) return 'Ferretería';
- if(/^(building_materials|tiles|flooring|bathroom_furnishing)$/.test(shop)) return 'Materiales de construcción';
- if(/^(industrial_supply|wholesale)$/.test(shop)) return 'Distribuidor industrial';
- if(/^(timber|lumber)$/.test(shop)) return 'Barraca / maderera';
- if(t.shop) return 'Comercio';
- if(t.office) return 'Oficinas y servicios';
- if(t.craft || t.industrial) return 'Industria y talleres';
- if(t.healthcare || /^(pharmacy|clinic|hospital|dentist|doctors)$/.test(t.amenity||'')) return 'Salud';
- if(t.tourism) return 'Turismo y hospedaje';
- if(/^(restaurant|cafe|fast_food|bar|pub|food_court|marketplace|fuel|car_repair|car_wash|bank|charging_station)$/.test(t.amenity||'')) return 'Alimentos y servicios';
+ if(/materiales de construcci[oó]n|barraca|maderera|maderas|aserradero|cemento|aridos/.test(name)) return 'Materiales de construcción';
+ if(/^(building_materials|tiles|flooring|bathroom_furnishing|timber|lumber)$/.test(shop) || industrial==='sawmill') return 'Materiales de construcción';
+ if(/distribuidor|suministros|mayorista|industrial|mining supplies|maquinaria|equipos industriales|seguridad industrial|epp/.test(name)) return 'Distribuidores industriales';
+ if(/^(industrial_supply|wholesale|machinery|construction_equipment|agricultural_machinery|safety_equipment|workwear)$/.test(shop)) return 'Distribuidores industriales';
+ if(t.industrial || t.craft) return 'Distribuidores industriales';
  return 'Otros establecimientos';
 }
 function osmCoords(el){
