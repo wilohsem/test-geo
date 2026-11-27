@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DISTINTEC GEO | Prospección Comercial</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--navy:#102b46;--blue:#1769aa;--bg:#f3f6f9;--line:#dce4eb;--muted:#64748b}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 Arial,sans-serif;background:var(--bg);color:#172536}
+header{background:var(--navy);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-size:20px;font-weight:800;letter-spacing:.5px}.sub{font-size:11px;opacity:.8;letter-spacing:1.4px}
+main{display:grid;grid-template-columns:340px 1fr;min-height:calc(100vh - 66px)}
+aside{padding:16px;background:#fff;border-right:1px solid var(--line);overflow:auto}
+#map{height:calc(100vh - 66px);min-height:520px}
+h2{font-size:15px;margin:4px 0 12px;color:var(--navy)}.group{padding:0 0 16px;margin-bottom:15px;border-bottom:1px solid var(--line)}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px}
+input,select,button{font:inherit}input[type=text],select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+input[type=range]{width:100%}.btn{border:0;border-radius:8px;padding:10px 12px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}
+.btn.secondary{background:#e8f0f7;color:var(--navy)}.btn.dark{background:var(--navy)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#f2f6fa;border-radius:9px;padding:10px}.stat b{display:block;font-size:22px;color:var(--navy)}.stat span{font-size:11px;color:var(--muted)}
+.small{font-size:11px;color:var(--muted)}.notice{padding:10px;border-radius:8px;background:#fff7df;color:#745600;font-size:12px}
+#list{max-height:260px;overflow:auto}.item{padding:9px 2px;border-bottom:1px solid var(--line)}.item b{display:block}.pill{display:inline-block;padding:2px 7px;border-radius:20px;background:#e7eff7;color:#244b70;font-size:10px}
+#file{display:none}.leaflet-popup-content{min-width:190px}.popup-title{font-weight:700;color:var(--navy)}
+@media(max-width:800px){main{display:flex;flex-direction:column}aside{order:2;border-right:0}#map{order:1;height:58vh;min-height:380px}}
+</style></head>
+<body>
+<header><div><div class="brand">DISTINTEC GEO</div><div class="sub">PROSPECCIÓN COMERCIAL NACIONAL</div></div><div class="small" style="color:#dce8f2">MVP · Versión 4 corregida</div></header>
+<main>
+<aside>
+<section class="group"><h2>Configuración del mapa</h2>
+<label for="cartoKey">Clave API de CARTO</label><input id="cartoKey" type="text" placeholder="Pega aquí tu API key de CARTO">
+<div class="actions"><button class="btn" id="applyMapKey">Conectar mapa</button><a class="btn secondary" href="https://carto.com/basemaps/apikey/" target="_blank" rel="noopener">Solicitar clave</a></div>
+<p class="small">Conexión CARTO corregida. Usa una clave nueva y mantén visible la atribución de OpenStreetMap y CARTO.</p>
+</section>
+<section class="group"><h2>Exploración geográfica</h2>
+<label for="radius">Radio de búsqueda: <strong id="radiusText">5 km</strong></label>
+<input id="radius" type="range" min="1" max="50" value="5" step="1">
+<label for="category">Tipo de establecimiento</label>
+<select id="category"><option value="">Todas las categorías</option><option>Ferretería</option><option>Distribuidor industrial</option><option>Barraca / maderera</option><option>Materiales de construcción</option><option>Seguridad industrial</option><option>Suministros mineros</option><option>Maquinaria y equipos</option></select>
+<label for="status">Estado comercial</label>
+<select id="status"><option value="">Todos los estados</option><option>Prospecto</option><option>Asignado</option><option>Visitado</option><option>Cliente</option><option>Descartado</option></select>
+<div class="actions"><button class="btn" id="locate">Usar mi ubicación</button><button class="btn secondary" id="reset">Ver Chile</button></div>
+</section>
+<section class="group"><h2>Base de establecimientos</h2>
+<div class="stats"><div class="stat"><b id="total">0</b><span>Registros cargados</span></div><div class="stat"><b id="visible">0</b><span>Dentro del radio / filtros</span></div></div>
+<div class="actions"><button class="btn" id="import">Importar CSV</button><button class="btn secondary" id="template">Descargar plantilla</button><input id="file" type="file" accept=".csv,text/csv"></div>
+<p class="small">La importación requiere coordenadas geográficas (latitud y longitud). La plantilla incluye los campos recomendados.</p>
+</section>
+<section class="group"><h2>Registrar establecimiento</h2>
+<label for="newName">Nombre comercial *</label><input id="newName" type="text" placeholder="Ej. Ferretería Los Andes">
+<label for="newCategory">Categoría *</label><select id="newCategory"><option>Ferretería</option><option>Distribuidor industrial</option><option>Barraca / maderera</option><option>Materiales de construcción</option><option>Seguridad industrial</option><option>Suministros mineros</option><option>Maquinaria y equipos</option></select>
+<label for="newAddress">Dirección</label><input id="newAddress" type="text" placeholder="Calle y número">
+<label for="newCommune">Comuna</label><input id="newCommune" type="text" placeholder="Comuna">
+<label for="newRegion">Región</label><input id="newRegion" type="text" placeholder="Región">
+<label for="newPhone">Teléfono / contacto</label><input id="newPhone" type="text" placeholder="+56 9 ...">
+<label for="newSeller">Vendedor responsable</label><input id="newSeller" type="text" placeholder="Nombre del vendedor">
+<label for="newNotes">Observaciones</label><input id="newNotes" type="text" placeholder="Interés, rubro, contacto, etc.">
+<div class="actions"><button class="btn" id="capture">Capturar GPS</button><button class="btn secondary" id="addRecord">Guardar prospecto</button></div>
+<div id="gpsStatus" class="small">Primero captura la ubicación GPS o selecciona un punto en el mapa.</div>
+</section>
+<section class="group"><h2>Resultados</h2><div id="list" class="small">Todavía no hay establecimientos cargados. Importa un catastro CSV o registra uno nuevo.</div></section>
+<div class="notice"><b>Importante:</b> esta versión es un prototipo funcional de interfaz. No contiene todavía un catastro nacional real ni usuarios, asignaciones sincronizadas o conexión a CRM. Los registros deben validarse antes de usarse comercialmente.</div>
+</aside>
+<div id="map" aria-label="Mapa de prospección"></div>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const map=L.map('map').setView([-33.45,-70.66],5);
+let tileLayer=null;
+function connectCarto(key){
+ if(!key){alert('Solicita una nueva clave API de CARTO y pégala aquí.');return}
+ if(tileLayer)map.removeLayer(tileLayer);
+ tileLayer=L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key='+encodeURIComponent(key),{
+  maxZoom:20,
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attribution/">CARTO</a>'
+ }).addTo(map);
+ tileLayer.on('tileerror',()=>{console.warn('CARTO no pudo cargar una tesela. Verifica la clave, restricciones del dominio y conexión a Internet.')});
+ localStorage.setItem('distintec_carto_key',key);
+}
+$('cartoKey').value=localStorage.getItem('distintec_carto_key')||'';
+if($('cartoKey').value)connectCarto($('cartoKey').value);
+$('applyMapKey').onclick=()=>connectCarto($('cartoKey').value.trim());
+let records=[],markers=[],userMarker=null,circle=null,userPos=null,newCoords=null;
+const radius=()=>Number($('radius').value)*1000;
+$('radius').addEventListener('input',()=>{$('radiusText').textContent=$('radius').value+' km';render()});
+$('category').addEventListener('change',render);$('status').addEventListener('change',render);
+function dist(a,b){const R=6371000,rad=x=>x*Math.PI/180,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon),x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ markers.forEach(m=>map.removeLayer(m));markers=[];
+ if(circle)map.removeLayer(circle);
+ if(userPos)circle=L.circle([userPos.lat,userPos.lon],{radius:radius(),color:'#1769aa',fillOpacity:.07}).addTo(map);
+ const filtered=records.filter(r=>(!$('category').value||r.category===$('category').value)&&(!$('status').value||r.status===$('status').value)&&(!userPos||dist(userPos,r)<=radius()));
+ filtered.forEach(r=>{const m=L.marker([r.lat,r.lon]).addTo(map);m.bindPopup(`<div class="popup-title">${esc(r.name)}</div><div>${esc(r.category)}</div><div>${esc(r.address)} · ${esc(r.commune)}</div><div>Estado: ${esc(r.status||'Sin estado')}</div><div>Responsable: ${esc(r.assigned_to||'Sin asignar')}</div>${r.phone?'<div>Tel: '+esc(r.phone)+'</div>':''}`);markers.push(m)});
+ $('total').textContent=records.length;$('visible').textContent=filtered.length;
+ $('list').innerHTML=filtered.length?filtered.slice(0,100).map((r,i)=>`<div class="item"><b>${esc(r.name)}</b><span>${esc(r.category)} · ${esc(r.commune)} (${r.region||'sin región'})</span><br><span class="pill">${esc(r.status||'Sin estado')}</span> <a href="#" data-i="${i}">Ver en mapa</a></div>`).join(''):'No hay resultados para los filtros y radio seleccionados.';
+ $('list').querySelectorAll('a').forEach(a=>a.onclick=e=>{e.preventDefault();const r=filtered[+a.dataset.i];map.setView([r.lat,r.lon],16);const m=markers[+a.dataset.i];if(m)m.openPopup()});
+}
+$('locate').onclick=()=>{if(!navigator.geolocation)return alert('Este navegador no ofrece geolocalización.');navigator.geolocation.getCurrentPosition(p=>{userPos={lat:p.coords.latitude,lon:p.coords.longitude};if(userMarker)map.removeLayer(userMarker);userMarker=L.marker([userPos.lat,userPos.lon]).addTo(map).bindPopup('Tu ubicación').openPopup();map.setView([userPos.lat,userPos.lon],13);render()},e=>alert('No se pudo obtener la ubicación: '+e.message),{enableHighAccuracy:true,timeout:12000})};
+$('reset').onclick=()=>{userPos=null;if(circle)map.removeLayer(circle);if(userMarker)map.removeLayer(userMarker);map.setView([-33.45,-70.66],5);render()};
+$('import').onclick=()=>$('file').click();
+function parseCSV(t){const lines=t.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim());if(!lines.length)return[];const parseLine=s=>{let a=[],v='',q=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'&&s[i+1]==='"'&&q){v+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){a.push(v);v=''}else v+=c}a.push(v);return a};const h=parseLine(lines.shift()).map(x=>x.trim());return lines.map(l=>{const a=parseLine(l),o={};h.forEach((k,i)=>o[k]=(a[i]||'').trim());return o})}
+$('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const rows=parseCSV(await f.text());const valid=rows.map(o=>({name:o.business_name||o.nombre||'',category:o.category||o.categoria||'Ferretería',address:o.address||o.direccion||'',commune:o.commune||o.comuna||'',region:o.region||'',lat:Number(o.lat),lon:Number(o.lon),phone:o.phone||o.telefono||'',assigned_to:o.assigned_to||o.vendedor||'',status:o.status||o.estado||'Prospecto'})).filter(r=>r.name&&Number.isFinite(r.lat)&&Number.isFinite(r.lon)&&Math.abs(r.lat)<=56&&Math.abs(r.lon)<=80);records=valid;render();if(valid.length){const b=L.latLngBounds(valid.map(r=>[r.lat,r.lon]));map.fitBounds(b.pad(.12));alert('Se cargaron '+valid.length+' registros válidos.');}else alert('No se encontraron filas válidas. Revisa los encabezados y coordenadas de la plantilla.')}catch(err){alert('No se pudo leer el CSV: '+err.message)}e.target.value=''};
+$('template').onclick=()=>{const csv='business_name,category,address,commune,region,lat,lon,phone,assigned_to,status\nEjemplo demostrativo, Ferretería, Calle Ejemplo 123, Santiago, Metropolitana,-33.45,-70.66,,Vendedor 1,Prospecto\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='plantilla_catastro_distintec_geo.csv';a.click();URL.revokeObjectURL(a.href)};
+$('capture').onclick=()=>{if(!navigator.geolocation){$('gpsStatus').textContent='Este navegador no ofrece geolocalización.';return} $('gpsStatus').textContent='Obteniendo ubicación…';navigator.geolocation.getCurrentPosition(p=>{newCoords={lat:p.coords.latitude,lon:p.coords.longitude};$('gpsStatus').textContent=`Ubicación capturada: ${newCoords.lat.toFixed(5)}, ${newCoords.lon.toFixed(5)}`;map.setView([newCoords.lat,newCoords.lon],16)},e=>{$('gpsStatus').textContent='No se pudo obtener GPS: '+e.message},{enableHighAccuracy:true,timeout:12000})};
+map.on('click',e=>{newCoords={lat:e.latlng.lat,lon:e.latlng.lng};$('gpsStatus').textContent=`Punto seleccionado en mapa: ${newCoords.lat.toFixed(5)}, ${newCoords.lon.toFixed(5)}`});
+$('addRecord').onclick=()=>{const name=$('newName').value.trim();if(!name){alert('Ingresa el nombre comercial.');return}if(!newCoords){alert('Captura GPS o selecciona la ubicación del establecimiento en el mapa.');return}
+const rec={name,category:$('newCategory').value,address:$('newAddress').value.trim(),commune:$('newCommune').value.trim(),region:$('newRegion').value.trim(),lat:newCoords.lat,lon:newCoords.lon,phone:$('newPhone').value.trim(),assigned_to:$('newSeller').value.trim(),status:'Prospecto',notes:$('newNotes').value.trim(),source:'Registro en terreno'};
+const duplicate=records.some(r=>r.name.toLowerCase()===rec.name.toLowerCase()&&dist(r,rec)<150);
+if(duplicate&&!confirm('Ya existe un establecimiento con nombre similar a menos de 150 metros. ¿Deseas agregarlo de todas formas?'))return;
+records.push(rec);render();map.setView([rec.lat,rec.lon],16);
+['newName','newAddress','newCommune','newRegion','newPhone','newSeller','newNotes'].forEach(id=>$(id).value='');
+newCoords=null;$('gpsStatus').textContent='Prospecto agregado a esta sesión. Exporta/guarda el catastro para conservarlo.';alert('Establecimiento agregado al mapa como Prospecto.');
+};
+render();
+</script></body></html>
