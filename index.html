@@ -25,7 +25,7 @@ input[type=range]{width:100%}.btn{border:0;border-radius:8px;padding:10px 12px;b
 @media(max-width:800px){main{display:flex;flex-direction:column}aside{order:2;border-right:0}#map{order:1;height:58vh;min-height:380px}}
 </style></head>
 <body>
-<header><div><div class="brand">DISTINTEC GEO</div><div class="sub">PROSPECCIÓN COMERCIAL NACIONAL</div></div><div class="small" style="color:#dce8f2">MVP · Versión 5.1 · Búsqueda con respaldo</div></header>
+<header><div><div class="brand">DISTINTEC GEO</div><div class="sub">PROSPECCIÓN COMERCIAL NACIONAL</div></div><div class="small" style="color:#dce8f2">MVP · Versión 5.2 · Clasificación comercial</div></header>
 <main>
 <aside>
 <section class="group"><h2>Configuración del mapa</h2>
@@ -43,7 +43,7 @@ input[type=range]{width:100%}.btn{border:0;border-radius:8px;padding:10px 12px;b
 <div class="actions"><button class="btn" id="locate">Usar mi ubicación</button><button class="btn secondary" id="reset">Ver Chile</button></div>
 </section>
 <section class="group"><h2>Prospección automática</h2>
-<p class="small">Busca establecimientos registrados en OpenStreetMap dentro del radio desde tu ubicación GPS. Si un servidor está ocupado, prueba automáticamente otros servicios. Incluye comercios, oficinas, talleres, industria, salud, turismo y servicios.</p>
+<p class="small">Busca establecimientos registrados en OpenStreetMap dentro del radio desde tu ubicación GPS. Si un servidor está ocupado, prueba automáticamente otros servicios. Clasifica ferreterías, distribuidores, barracas, materiales de construcción, seguridad, maquinaria y otros rubros según las etiquetas disponibles en OpenStreetMap.</p>
 <div class="actions"><button class="btn" id="searchNearby">Buscar prospectos cercanos</button></div>
 <div id="searchStatus" class="small" role="status" aria-live="polite">Primero usa «Usar mi ubicación». Después se consultarán los establecimientos mapeados en el radio elegido.</div>
 </section>
@@ -95,6 +95,19 @@ $('status').value='';
 const radius=()=>Number($('radius').value)*1000;
 
 function osmCategory(t){
+ const shop=String(t.shop||'').toLowerCase();
+ const industrial=String(t.industrial||'').toLowerCase();
+ const name=String(t.name||t.brand||t.operator||'').toLowerCase();
+ // Clasificación específica basada en etiquetas OSM y, como apoyo, nombres explícitos.
+ if(/ferreter[ií]a|hardware|herramientas/.test(name)) return 'Ferretería';
+ if(/barraca|maderera|maderas|aserradero/.test(name) || /^(timber|sawmill)$/.test(shop) || industrial==='sawmill') return 'Barraca / maderera';
+ if(/seguridad industrial|epp|elementos de protecci[oó]n personal/.test(name) || /^(safety_equipment|workwear)$/.test(shop)) return 'Seguridad industrial';
+ if(/suministros mineros|mining supplies|minero/.test(name)) return 'Suministros mineros';
+ if(/maquinaria|maquinas|equipos industriales/.test(name) || /^(machinery|construction_equipment|agricultural_machinery)$/.test(shop)) return 'Maquinaria y equipos';
+ if(/^(hardware|doityourself|tools|paint|electrical|plumbing|locksmith)$/.test(shop)) return 'Ferretería';
+ if(/^(building_materials|tiles|flooring|bathroom_furnishing)$/.test(shop)) return 'Materiales de construcción';
+ if(/^(industrial_supply|wholesale)$/.test(shop)) return 'Distribuidor industrial';
+ if(/^(timber|lumber)$/.test(shop)) return 'Barraca / maderera';
  if(t.shop) return 'Comercio';
  if(t.office) return 'Oficinas y servicios';
  if(t.craft || t.industrial) return 'Industria y talleres';

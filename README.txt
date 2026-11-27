@@ -1,21 +1,17 @@
-DISTINTEC GEO v5.1 - Búsqueda geográfica con servidores alternativos
+DISTINTEC GEO v5.2 - Clasificación comercial
 
-Cambios:
-- Agrega tres instancias Overpass en secuencia: Private.coffee, Overpass principal y VK Maps.
-- Si una instancia falla, intenta la siguiente.
-- Añade límite de espera por servidor y muestra errores de manera más clara.
-- La búsqueda comienza con todas las categorías y estados para evitar ocultar resultados.
-- Mantiene el radio seleccionado por el usuario.
+Corrección:
+- La categoría Ferretería ya no depende de que todos los comercios sean genéricamente "Comercio".
+- Se reconocen etiquetas OpenStreetMap específicas como shop=hardware, doityourself, tools, paint, electrical y plumbing.
+- Se agregan reglas para distribuidores industriales, barracas/madereras, materiales de construcción, seguridad industrial, suministros mineros y maquinaria.
+- Se usan nombres explícitos como apoyo cuando las etiquetas OSM son insuficientes.
 
-Cómo actualizar GitHub Pages:
-1. Abre el repositorio test-geo.
-2. Abre index.html y selecciona Edit (lápiz).
-3. Reemplaza todo el contenido por este index.html.
-4. Commit changes.
-5. Espera la actualización de GitHub Pages y recarga la web.
+Actualización:
+1. Abre el repositorio GitHub test-geo.
+2. Abre index.html y pulsa Edit (lápiz).
+3. Reemplaza todo el contenido por el index.html incluido en esta carpeta.
+4. Presiona Commit changes.
+5. Espera la publicación y recarga la aplicación.
 
-Limitaciones:
-- Solo muestra objetos registrados y etiquetados en OpenStreetMap; no es un catastro oficial ni completo.
-- Las instancias Overpass públicas son servicios de mejor esfuerzo, no una garantía de disponibilidad.
-- Para uso nacional y por varios vendedores se recomienda una base de datos propia/servicio administrado y una política de actualización.
-- No incluyas claves API en repositorios públicos ni capturas.
+Nota:
+La clasificación depende de las etiquetas y nombres registrados en OpenStreetMap. No todos los negocios están etiquetados con suficiente detalle; algunos pueden seguir apareciendo como Comercio. La cifra de resultados es el total de objetos que devolvió la consulta, no necesariamente negocios únicos o todos los locales existentes.
