@@ -6,10 +6,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--navy:#102b46;--blue:#1769aa;--bg:#f3f6f9;--line:#dce4eb;--muted:#64748b}
+:root{--navy:#102b46;--blue:#1769aa;--orange:#ff6b00;--bg:#f3f6f9;--line:#dce4eb;--muted:#64748b}
 *{box-sizing:border-box}body{margin:0;font:14px/1.45 Arial,sans-serif;background:var(--bg);color:#172536}
-header{background:var(--navy);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{font-size:20px;font-weight:800;letter-spacing:.5px}.sub{font-size:11px;opacity:.8;letter-spacing:1.4px}
+header{background:var(--orange);color:#10202d;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:86px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.brand{font-size:20px;font-weight:900;letter-spacing:.5px;color:#ffffff}.sub{font-size:11px;opacity:.9;letter-spacing:1.4px;color:#18212b}.header-right{display:flex;align-items:center;gap:18px}.brand-logos{display:flex;align-items:center;gap:12px}.brand-logos img{display:block;object-fit:contain;max-width:150px;height:52px}.brand-logos .gorila{width:58px;height:58px}.brand-logos .difemat{width:145px}.version-label{font-size:11px;color:#172536;text-align:right;white-space:nowrap}
 main{display:grid;grid-template-columns:340px 1fr;min-height:calc(100vh - 66px)}
 aside{padding:16px;background:#fff;border-right:1px solid var(--line);overflow:auto}
 #map{height:calc(100vh - 66px);min-height:520px}
@@ -22,10 +22,19 @@ input[type=range]{width:100%}.btn{border:0;border-radius:8px;padding:10px 12px;b
 .small{font-size:11px;color:var(--muted)}.notice{padding:10px;border-radius:8px;background:#fff7df;color:#745600;font-size:12px}
 #list{max-height:260px;overflow:auto}.item{padding:9px 2px;border-bottom:1px solid var(--line)}.item b{display:block}.pill{display:inline-block;padding:2px 7px;border-radius:20px;background:#e7eff7;color:#244b70;font-size:10px}
 #file{display:none}.leaflet-popup-content{min-width:190px}.popup-title{font-weight:700;color:var(--navy)}
-@media(max-width:800px){main{display:flex;flex-direction:column}aside{order:2;border-right:0}#map{order:1;height:58vh;min-height:380px}}
+@media(max-width:800px){header{padding:10px 12px;gap:8px;align-items:center}.brand{font-size:17px}.sub{font-size:9px;letter-spacing:1px}.header-right{gap:8px;flex-direction:column;align-items:flex-end}.brand-logos{gap:7px}.brand-logos img{height:35px}.brand-logos .gorila{width:39px;height:39px}.brand-logos .difemat{width:100px}.version-label{font-size:9px}main{display:flex;flex-direction:column}aside{order:2;border-right:0}#map{order:1;height:58vh;min-height:380px}}
 </style></head>
 <body>
-<header><div><div class="brand">DISTINTEC GEO</div><div class="sub">PROSPECCIÓN COMERCIAL NACIONAL</div></div><div class="small" style="color:#dce8f2">MVP · Versión 5.3 · Tres categorías comerciales</div></header>
+<header>
+<div><div class="brand">DISTINTEC GEO</div><div class="sub">PROSPECCIÓN COMERCIAL NACIONAL</div></div>
+<div class="header-right">
+ <div class="brand-logos" aria-label="Marcas Distintec">
+  <img class="gorila" src="logo-gorila.png" alt="Gorila">
+  <img class="difemat" src="logo-difemat.webp" alt="Difemat">
+ </div>
+ <div class="version-label">MVP · Versión 5.4</div>
+</div>
+</header>
 <main>
 <aside>
 <section class="group"><h2>Configuración del mapa</h2>
